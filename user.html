@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Member — Torn Groups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">TORN<span>GROUPS</span></a>
+    <div class="header-meta" id="last-updated"></div>
+  </div>
+</header>
+
+<main class="main">
+  <a class="back-link" id="back-link" href="index.html">← Back</a>
+
+  <div id="loading" class="loading-state">Loading member…</div>
+  <div id="error" class="error-state" style="display:none"></div>
+  <div id="content" style="display:none">
+
+    <div class="user-header">
+      <div class="user-avatar" id="u-avatar"></div>
+      <div class="user-info">
+        <h1 class="user-name" id="u-name"></h1>
+        <div class="user-meta">
+          Torn ID <span id="u-id"></span> ·
+          <a id="u-torn-link" href="#" target="_blank" rel="noopener">View on Torn ↗</a>
+        </div>
+      </div>
+      <div class="balance-box">
+        <div class="balance-label">Outstanding balance</div>
+        <div class="balance-val" id="u-balance"></div>
+        <div class="balance-sub">across all groups</div>
+      </div>
+    </div>
+
+    <div class="section-label">Group history</div>
+    <div class="table-wrap">
+      <table class="data-table" id="history-table">
+        <thead>
+          <tr>
+            <th>Group</th>
+            <th>Item</th>
+            <th class="num">Sent</th>
+            <th class="num">Share</th>
+            <th class="num">Profit share</th>
+            <th>Last received</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="history-body"></tbody>
+      </table>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-item">
+        <span class="summary-label">Groups participated</span>
+        <span class="summary-val" id="u-groups"></span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Total items sent</span>
+        <span class="summary-val" id="u-total-items"></span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Total earned</span>
+        <span class="summary-val green" id="u-total-earned"></span>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  Data sourced from Torn City · <a href="https://www.torn.com/profiles.php?XID=2966467" target="_blank" rel="noopener">Ben_Hagen [2966467]</a>
+</footer>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script>
+(async () => {
+  const params   = new URLSearchParams(location.search);
+  const userId   = params.get('id');
+  const fromGroup = params.get('from');
+  if (!userId) { location.href = 'index.html'; return; }
+
+  // Back link goes to referring group if known
+  if (fromGroup) {
+    const bl = document.getElementById('back-link');
+    bl.href        = 'group.html?id=' + fromGroup;
+    bl.textContent = '← ' + fromGroup;
+  }
+
+  try {
+    const u = await api.getUser(userId);
+    if (u.error) throw new Error(u.error);
+
+    document.title = u.username + ' — Torn Groups';
+
+    const initials = u.username.slice(0, 2).toUpperCase();
+    document.getElementById('u-avatar').textContent    = initials;
+    document.getElementById('u-name').textContent      = u.username;
+    document.getElementById('u-id').textContent        = u.userId;
+    document.getElementById('u-torn-link').href        = 'https://www.torn.com/profiles.php?XID=' + u.userId;
+    document.getElementById('u-balance').textContent   = '$' + Number(u.balance).toLocaleString();
+    document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+
+    const totalItems  = u.history.reduce((s, h) => s + h.totalItems, 0);
+    const totalEarned = u.history.reduce((s, h) => s + (h.profitShare || 0), 0);
+
+    document.getElementById('u-groups').textContent       = u.history.length;
+    document.getElementById('u-total-items').textContent  = totalItems;
+    document.getElementById('u-total-earned').textContent = '$' + Number(totalEarned).toLocaleString();
+
+    const tbody = document.getElementById('history-body');
+    tbody.innerHTML = u.history.map(h => {
+      const shareStr  = h.factor ? (h.factor * 100).toFixed(2) + '%' : '—';
+      const profitStr = h.profitShare ? '$' + Number(h.profitShare).toLocaleString()
+                      : h.groupStatus === 'open' ? 'TBD' : '—';
+      const complete  = h.status === 'COMPLETE';
+      return `
+      <tr>
+        <td><a href="group.html?id=${h.groupId}" class="user-link">${h.groupId}</a></td>
+        <td>${h.itemName}</td>
+        <td class="num">${h.totalItems}</td>
+        <td class="num">${shareStr}</td>
+        <td class="num ${h.profitShare ? 'val-green' : 'val-dim'}">${profitStr}</td>
+        <td class="dim">${h.lastReceived || '—'}</td>
+        <td><span class="badge ${complete ? 'badge-closed' : 'badge-open'}">${complete ? 'Complete' : h.groupStatus === 'open' ? 'Live' : 'Pending'}</span></td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+
+  } catch (err) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display   = 'block';
+    document.getElementById('error').textContent     = 'Could not load member data. ' + err.message;
+  }
+})();
+</script>
+</body>
+</html>

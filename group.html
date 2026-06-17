@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Group — Torn Groups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">TORN<span>GROUPS</span></a>
+    <div class="header-meta" id="last-updated"></div>
+  </div>
+</header>
+
+<main class="main">
+  <a href="index.html" class="back-link">← All groups</a>
+
+  <div id="loading" class="loading-state">Loading group…</div>
+  <div id="error" class="error-state" style="display:none"></div>
+  <div id="content" style="display:none">
+
+    <div class="detail-header">
+      <div class="detail-header-top">
+        <div>
+          <h1 class="detail-id" id="d-id"></h1>
+          <div class="detail-sub" id="d-sub"></div>
+        </div>
+        <span class="badge" id="d-badge"></span>
+      </div>
+      <div class="progress-wrap" style="margin-top:14px">
+        <div class="progress-bg" style="height:8px">
+          <div class="progress-fill" id="d-bar" style="width:0%"></div>
+        </div>
+        <div class="progress-labels">
+          <span id="d-progress-text"></span>
+          <span id="d-pct"></span>
+        </div>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-item"><div class="meta-label">Opened</div><div class="meta-val" id="d-start"></div></div>
+        <div class="meta-item"><div class="meta-label">Closed</div><div class="meta-val" id="d-end"></div></div>
+        <div class="meta-item"><div class="meta-label">Target</div><div class="meta-val" id="d-target"></div></div>
+        <div class="meta-item"><div class="meta-label">Contributors</div><div class="meta-val" id="d-contribs"></div></div>
+      </div>
+    </div>
+
+    <div id="settlement-section" style="display:none">
+      <div class="section-label">Settlement</div>
+      <div class="settlement-box">
+        <div class="settlement-row"><span>Auction income</span><span id="s-auction"></span></div>
+        <div class="settlement-row"><span>Auction fee</span><span id="s-auctionfee"></span></div>
+        <div class="settlement-row"><span>Service fee</span><span id="s-servicefee"></span></div>
+        <div class="settlement-row settlement-total"><span>Profit to share</span><span id="s-profit"></span></div>
+      </div>
+    </div>
+
+    <div class="section-label">Contributors</div>
+    <div class="table-wrap">
+      <table class="data-table" id="contrib-table">
+        <thead>
+          <tr>
+            <th>Member</th>
+            <th class="num">Sent</th>
+            <th class="num">Share</th>
+            <th class="num">Profit share</th>
+            <th>Last received</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="contrib-body"></tbody>
+      </table>
+    </div>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  Data sourced from Torn City · <a href="https://www.torn.com/profiles.php?XID=2966467" target="_blank" rel="noopener">Ben_Hagen [2966467]</a>
+</footer>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script>
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const id     = params.get('id');
+  if (!id) { location.href = 'index.html'; return; }
+
+  document.title = id + ' — Torn Groups';
+
+  try {
+    const g   = await api.getGroup(id);
+    if (g.error) throw new Error(g.error);
+
+    const closed = g.status === 'closed';
+    const pct    = g.target > 0 ? Math.min(100, Math.round((g.totalReceived / g.target) * 100)) : 0;
+
+    document.getElementById('d-id').textContent      = g.id;
+    document.getElementById('d-sub').textContent     = g.itemName + ' collection drive';
+    document.getElementById('d-start').textContent   = g.startDate || '—';
+    document.getElementById('d-end').textContent     = g.endDate   || '—';
+    document.getElementById('d-target').textContent  = g.target + ' units';
+    document.getElementById('d-contribs').textContent = g.contributors.length;
+    document.getElementById('d-progress-text').textContent = g.totalReceived + ' / ' + g.target + ' units received';
+    document.getElementById('d-pct').textContent     = pct + '%';
+    document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+
+    const badge = document.getElementById('d-badge');
+    badge.textContent  = closed ? 'Closed' : 'Open';
+    badge.className    = 'badge ' + (closed ? 'badge-closed' : 'badge-open');
+
+    const bar = document.getElementById('d-bar');
+    bar.style.width     = pct + '%';
+    bar.className       = 'progress-fill ' + (closed ? 'fill-closed' : 'fill-open');
+
+    // Settlement
+    const s = g.settlement;
+    if (closed && (s.profit || s.auction)) {
+      const fmt = v => v ? '$' + Number(v).toLocaleString() : '—';
+      document.getElementById('s-auction').textContent    = fmt(s.auction);
+      document.getElementById('s-auctionfee').textContent = fmt(s.auctionFee);
+      document.getElementById('s-servicefee').textContent = fmt(s.serviceFee);
+      document.getElementById('s-profit').textContent     = fmt(s.profit);
+      document.getElementById('settlement-section').style.display = 'block';
+    }
+
+    // Contributors table
+    const tbody = document.getElementById('contrib-body');
+    tbody.innerHTML = g.contributors.map(c => {
+      const shareStr  = c.factor ? (c.factor * 100).toFixed(2) + '%' : '—';
+      const profitStr = c.profitShare ? '$' + Number(c.profitShare).toLocaleString() : (closed ? '—' : 'TBD');
+      const paid      = c.status === 'COMPLETE';
+      return `
+      <tr>
+        <td><a href="user.html?id=${c.senderId}" class="user-link">${c.senderName}</a></td>
+        <td class="num">${c.totalItems}</td>
+        <td class="num">${shareStr}</td>
+        <td class="num ${c.profitShare ? 'val-green' : 'val-dim'}">${profitStr}</td>
+        <td class="dim">${c.lastReceived || '—'}</td>
+        <td><span class="badge ${paid ? 'badge-closed' : 'badge-open'}">${paid ? 'Complete' : 'Live'}</span></td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+
+  } catch (err) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display   = 'block';
+    document.getElementById('error').textContent     = 'Could not load group data. ' + err.message;
+  }
+})();
+</script>
+</body>
+</html>
