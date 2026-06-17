@@ -20,7 +20,17 @@
 <main class="main">
   <a class="back-link" id="back-link" href="index.html">← Back</a>
 
-  <div id="loading" class="loading-state">Loading member…</div>
+  <div id="skeleton" class="skeleton-detail">
+    <div class="skel-user-header">
+      <div class="skel skel-avatar"></div>
+      <div style="flex:1">
+        <div class="skel skel-title"></div>
+        <div class="skel skel-sub" style="margin-top:8px; width:160px"></div>
+      </div>
+      <div class="skel skel-balance"></div>
+    </div>
+    <div class="skel skel-table"></div>
+  </div>
   <div id="error" class="error-state" style="display:none"></div>
   <div id="content" style="display:none">
 
@@ -144,11 +154,11 @@
       </tr>`;
     }).join('');
 
-    document.getElementById('loading').style.display = 'none';
+    document.getElementById('skeleton').style.display = 'none';
     document.getElementById('content').style.display = 'block';
 
   } catch (err) {
-    document.getElementById('loading').style.display = 'none';
+    document.getElementById('skeleton').style.display = 'none';
     document.getElementById('error').style.display   = 'block';
     document.getElementById('error').textContent     = 'Could not load member data. ' + err.message;
   }

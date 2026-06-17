@@ -20,7 +20,20 @@
 <main class="main">
   <a href="index.html" class="back-link">← All groups</a>
 
-  <div id="loading" class="loading-state">Loading group…</div>
+  <div id="skeleton" class="skeleton-detail">
+    <div class="skel-detail-header">
+      <div class="skel skel-title"></div>
+      <div class="skel skel-sub" style="margin-top:8px"></div>
+      <div class="skel skel-bar" style="margin-top:20px"></div>
+      <div class="skel-meta-grid">
+        <div class="skel skel-meta"></div>
+        <div class="skel skel-meta"></div>
+        <div class="skel skel-meta"></div>
+        <div class="skel skel-meta"></div>
+      </div>
+    </div>
+    <div class="skel skel-table"></div>
+  </div>
   <div id="error" class="error-state" style="display:none"></div>
   <div id="content" style="display:none">
 
@@ -110,8 +123,8 @@
     const closed = g.status === 'closed';
     const pct    = g.target > 0 ? Math.min(100, Math.round((g.totalReceived / g.target) * 100)) : 0;
 
-    document.getElementById('d-id').textContent      = g.id;
-    document.getElementById('d-sub').textContent = (g.cacheName || g.itemName) + ' (' + g.id + ')';
+    document.getElementById('d-id').textContent  = (g.cacheName ? g.cacheName + ' (' + g.id + ')' : g.id);
+    document.getElementById('d-sub').textContent = g.itemName + ' collection drive';
     document.getElementById('d-start').textContent   = g.startDate || '—';
     document.getElementById('d-end').textContent     = g.endDate   || '—';
     document.getElementById('d-target').textContent  = g.target + ' units';
@@ -155,11 +168,11 @@
       </tr>`;
     }).join('');
 
-    document.getElementById('loading').style.display = 'none';
+    document.getElementById('skeleton').style.display = 'none';
     document.getElementById('content').style.display = 'block';
 
   } catch (err) {
-    document.getElementById('loading').style.display = 'none';
+    document.getElementById('skeleton').style.display = 'none';
     document.getElementById('error').style.display   = 'block';
     document.getElementById('error').textContent     = 'Could not load group data. ' + err.message;
   }
