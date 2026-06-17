@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Torn Groups</title>
+<title>Cache Open Club</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -12,14 +12,14 @@
 
 <header class="site-header">
   <div class="header-inner">
-    <a href="index.html" class="logo">TORN<span>GROUPS</span></a>
+    <a href="index.html" class="logo">CACHE OPEN <span>CLUB</span></a>
     <div class="header-meta" id="last-updated"></div>
   </div>
 </header>
 
 <main class="main">
   <div class="page-head">
-    <h1 class="page-title">Collection drives</h1>
+    <h1 class="page-title">COC DASHBOARD</h1>
     <p class="page-sub">Live status · refreshes every 5 minutes</p>
   </div>
 
@@ -30,10 +30,16 @@
     <div class="stat"><span class="stat-val green" id="stat-members">—</span><span class="stat-label">Contributors</span></div>
   </div>
 
-  <div id="loading" class="loading-state">Loading groups…</div>
   <div id="error" class="error-state" style="display:none"></div>
 
-  <div class="groups-grid" id="groups-grid" style="display:none"></div>
+  <div class="groups-grid" id="groups-grid">
+    <div class="group-card skeleton-card"><div class="skel skel-id"></div><div class="skel skel-sub"></div><div class="skel skel-bar"></div><div class="skel skel-foot"></div></div>
+    <div class="group-card skeleton-card"><div class="skel skel-id"></div><div class="skel skel-sub"></div><div class="skel skel-bar"></div><div class="skel skel-foot"></div></div>
+    <div class="group-card skeleton-card"><div class="skel skel-id"></div><div class="skel skel-sub"></div><div class="skel skel-bar"></div><div class="skel skel-foot"></div></div>
+    <div class="group-card skeleton-card"><div class="skel skel-id"></div><div class="skel skel-sub"></div><div class="skel skel-bar"></div><div class="skel skel-foot"></div></div>
+    <div class="group-card skeleton-card"><div class="skel skel-id"></div><div class="skel skel-sub"></div><div class="skel skel-bar"></div><div class="skel skel-foot"></div></div>
+    <div class="group-card skeleton-card"><div class="skel skel-id"></div><div class="skel skel-sub"></div><div class="skel skel-bar"></div><div class="skel skel-foot"></div></div>
+  </div>
 </main>
 
 <footer class="site-footer">
@@ -57,18 +63,19 @@
     document.getElementById('stat-members').textContent = allContribs;
 
     const grid = document.getElementById('groups-grid');
+    grid.style.display = 'grid';
     grid.innerHTML = groups.map(g => {
       const pct     = g.target > 0 ? Math.min(100, Math.round((g.totalReceived / g.target) * 100)) : 0;
       const closed  = g.status === 'closed';
       const dateStr = closed ? (g.endDate || '') : (g.startDate || '');
-      const dateLabel = closed ? 'Closed ' + dateStr : 'Opened ' + dateStr;
+      const dateLabel = closed ? 'Closed ' + dateStr : 'Started ' + dateStr;
 
       return `
       <a href="group.html?id=${g.id}" class="group-card ${closed ? 'is-closed' : 'is-open'}">
         <div class="card-top">
           <div>
             <div class="card-id">${g.id}</div>
-            <div class="card-item">${g.itemName} · ${g.target} units</div>
+            <div class="card-item">${g.cacheName || g.itemName} (${g.id}) · ${g.target} units</div>
           </div>
           <span class="badge ${closed ? 'badge-closed' : 'badge-open'}">${closed ? 'Closed' : 'Open'}</span>
         </div>
@@ -88,12 +95,11 @@
       </a>`;
     }).join('');
 
-    document.getElementById('loading').style.display = 'none';
-    grid.style.display = 'grid';
+    grid.innerHTML = grid.innerHTML; // replace skeletons already done above
     document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
 
   } catch (err) {
-    document.getElementById('loading').style.display = 'none';
+    document.getElementById('groups-grid').style.display = 'none';
     document.getElementById('error').style.display   = 'block';
     document.getElementById('error').textContent     = 'Could not load data. Please try again later.';
   }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Group — Torn Groups</title>
+<title>Group — Cache Open Club</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -12,7 +12,7 @@
 
 <header class="site-header">
   <div class="header-inner">
-    <a href="index.html" class="logo">TORN<span>GROUPS</span></a>
+    <a href="index.html" class="logo">CACHE OPEN <span>CLUB</span></a>
     <div class="header-meta" id="last-updated"></div>
   </div>
 </header>
@@ -42,7 +42,7 @@
         </div>
       </div>
       <div class="meta-grid">
-        <div class="meta-item"><div class="meta-label">Opened</div><div class="meta-val" id="d-start"></div></div>
+        <div class="meta-item"><div class="meta-label">Started</div><div class="meta-val" id="d-start"></div></div>
         <div class="meta-item"><div class="meta-label">Closed</div><div class="meta-val" id="d-end"></div></div>
         <div class="meta-item"><div class="meta-label">Target</div><div class="meta-val" id="d-target"></div></div>
         <div class="meta-item"><div class="meta-label">Contributors</div><div class="meta-val" id="d-contribs"></div></div>
@@ -68,8 +68,7 @@
             <th class="num">Sent</th>
             <th class="num">Share</th>
             <th class="num">Profit share</th>
-            <th>Last received</th>
-            <th>Status</th>
+            <th>Last received (TCT)</th>
           </tr>
         </thead>
         <tbody id="contrib-body"></tbody>
@@ -86,6 +85,17 @@
 <script src="config.js"></script>
 <script src="api.js"></script>
 <script>
+
+  // Format a date string as TCT (UTC)
+  function toTCT(raw) {
+    if (!raw) return '—';
+    const d = new Date(raw);
+    if (isNaN(d)) return raw;
+    const pad = n => String(n).padStart(2, '0');
+    return d.getUTCFullYear() + '-' + pad(d.getUTCMonth()+1) + '-' + pad(d.getUTCDate())
+      + ' ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ' TCT';
+  }
+
 (async () => {
   const params = new URLSearchParams(location.search);
   const id     = params.get('id');
@@ -101,7 +111,7 @@
     const pct    = g.target > 0 ? Math.min(100, Math.round((g.totalReceived / g.target) * 100)) : 0;
 
     document.getElementById('d-id').textContent      = g.id;
-    document.getElementById('d-sub').textContent     = g.itemName + ' collection drive';
+    document.getElementById('d-sub').textContent = (g.cacheName || g.itemName) + ' (' + g.id + ')';
     document.getElementById('d-start').textContent   = g.startDate || '—';
     document.getElementById('d-end').textContent     = g.endDate   || '—';
     document.getElementById('d-target').textContent  = g.target + ' units';
@@ -141,8 +151,7 @@
         <td class="num">${c.totalItems}</td>
         <td class="num">${shareStr}</td>
         <td class="num ${c.profitShare ? 'val-green' : 'val-dim'}">${profitStr}</td>
-        <td class="dim">${c.lastReceived || '—'}</td>
-        <td><span class="badge ${paid ? 'badge-closed' : 'badge-open'}">${paid ? 'Complete' : 'Live'}</span></td>
+        <td class="dim">${toTCT(c.lastReceived)}</td>
       </tr>`;
     }).join('');
 

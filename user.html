@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Member — Torn Groups</title>
+<title>Member — Cache Open Club</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -12,7 +12,7 @@
 
 <header class="site-header">
   <div class="header-inner">
-    <a href="index.html" class="logo">TORN<span>GROUPS</span></a>
+    <a href="index.html" class="logo">CACHE OPEN <span>CLUB</span></a>
     <div class="header-meta" id="last-updated"></div>
   </div>
 </header>
@@ -50,8 +50,7 @@
             <th class="num">Sent</th>
             <th class="num">Share</th>
             <th class="num">Profit share</th>
-            <th>Last received</th>
-            <th>Status</th>
+            <th>Last received (TCT)</th>
           </tr>
         </thead>
         <tbody id="history-body"></tbody>
@@ -83,6 +82,17 @@
 <script src="config.js"></script>
 <script src="api.js"></script>
 <script>
+
+  // Format a date string as TCT (UTC)
+  function toTCT(raw) {
+    if (!raw) return '—';
+    const d = new Date(raw);
+    if (isNaN(d)) return raw;
+    const pad = n => String(n).padStart(2, '0');
+    return d.getUTCFullYear() + '-' + pad(d.getUTCMonth()+1) + '-' + pad(d.getUTCDate())
+      + ' ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ' TCT';
+  }
+
 (async () => {
   const params   = new URLSearchParams(location.search);
   const userId   = params.get('id');
@@ -130,8 +140,7 @@
         <td class="num">${h.totalItems}</td>
         <td class="num">${shareStr}</td>
         <td class="num ${h.profitShare ? 'val-green' : 'val-dim'}">${profitStr}</td>
-        <td class="dim">${h.lastReceived || '—'}</td>
-        <td><span class="badge ${complete ? 'badge-closed' : 'badge-open'}">${complete ? 'Complete' : h.groupStatus === 'open' ? 'Live' : 'Pending'}</span></td>
+        <td class="dim">${toTCT(h.lastReceived)}</td>
       </tr>`;
     }).join('');
 
