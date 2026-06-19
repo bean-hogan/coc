@@ -93,14 +93,13 @@
 <script src="api.js"></script>
 <script>
 
-  // Format a date string as TCT (UTC)
+  // Format a stored TCT string (already UTC) — never parse via Date() to avoid local-timezone shift
   function toTCT(raw) {
     if (!raw) return '—';
-    const d = new Date(raw);
-    if (isNaN(d)) return raw;
-    const pad = n => String(n).padStart(2, '0');
-    return d.getUTCFullYear() + '-' + pad(d.getUTCMonth()+1) + '-' + pad(d.getUTCDate())
-      + ' ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ' TCT';
+    // String is already TCT e.g. "2026-06-12 15:20:33" — just trim seconds
+    const m = raw.toString().match(/(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/);
+    if (m) return m[1] + ' ' + m[2] + ' TCT';
+    return raw; // unexpected format — return as-is
   }
 
 (async () => {
