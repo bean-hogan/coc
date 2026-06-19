@@ -93,14 +93,26 @@
 <script src="api.js"></script>
 <script>
 
-  // Format a stored TCT string (already UTC) — never parse via Date() to avoid local-timezone shift
+  // Display timestamp as TCT — strips any timezone suffix
+  // Extract time from any format, display as TCT
   function toTCT(raw) {
     if (!raw) return '—';
-    // String is already TCT e.g. "2026-06-12 15:20:33" — just trim seconds
-    const m = raw.toString().match(/(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/);
-    if (m) return m[1] + ' ' + m[2] + ' TCT';
-    return raw; // unexpected format — return as-is
+    const s = raw.toString();
+    // Clean format: "YYYY-MM-DD HH:MM"
+    const clean = s.match(/(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+    if (clean) return clean[1] + ' ' + clean[2] + ' TCT';
+    // Messy format: "Wed Jun 17 2026 17:11:29 GMT+0200 (...)"
+    // Use Date() to parse, extract UTC parts
+    const d = new Date(s);
+    if (!isNaN(d)) {
+      const pad = n => String(n).padStart(2,'0');
+      return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate())
+        +' '+pad(d.getUTCHours())+':'+pad(d.getUTCMinutes())+' TCT';
+    }
+    // Last resort: strip everything from GMT onwards
+    return s.replace(/\s*GMT.*/,'').trim() + ' TCT';
   }
+
 
 (async () => {
   const params   = new URLSearchParams(location.search);
