@@ -93,24 +93,20 @@
 <script src="api.js"></script>
 <script>
 
-  // Display timestamp as TCT — strips any timezone suffix
-  // Extract time from any format, display as TCT
+  // Display timestamp as TCT
   function toTCT(raw) {
     if (!raw) return '—';
-    const s = raw.toString();
-    // Clean format: "YYYY-MM-DD HH:MM"
-    const clean = s.match(/(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
-    if (clean) return clean[1] + ' ' + clean[2] + ' TCT';
-    // Messy format: "Wed Jun 17 2026 17:11:29 GMT+0200 (...)"
-    // Use Date() to parse, extract UTC parts
-    const d = new Date(s);
+    const s = raw.toString().trim();
+    // Clean format 'YYYY-MM-DD HH:MM' — return directly, no Date() needed
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(s)) return s.slice(0,16) + ' TCT';
+    // Fallback: force UTC by replacing space with T and appending Z
+    const d = new Date(s.replace(' ', 'T') + (s.includes('+') || s.endsWith('Z') ? '' : 'Z'));
     if (!isNaN(d)) {
       const pad = n => String(n).padStart(2,'0');
       return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate())
         +' '+pad(d.getUTCHours())+':'+pad(d.getUTCMinutes())+' TCT';
     }
-    // Last resort: strip everything from GMT onwards
-    return s.replace(/\s*GMT.*/,'').trim() + ' TCT';
+    return s + ' TCT';
   }
 
 
