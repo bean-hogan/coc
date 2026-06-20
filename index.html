@@ -73,9 +73,12 @@
       return `
       <a href="group.html?id=${g.id}" class="group-card ${closed ? 'is-closed' : 'is-open'}">
         <div class="card-top">
-          <div>
-            <div class="card-id">${g.cacheName ? g.cacheName + ' (' + g.id + ')' : g.id}</div>
-            <div class="card-item">${g.itemName} · ${g.target} units</div>
+          <div class="card-img-wrap">
+            <img class="cache-img" src="images/${g.cacheId}.webp" alt="${g.cacheName}">
+            <div>
+              <div class="card-id">${g.cacheName ? g.cacheName + ' (' + g.id + ')' : g.id}</div>
+              <div class="card-item"><img class="item-img" src="images/${g.itemId}.webp" alt="${g.itemName}"> ${g.itemName} · ${g.target} units</div>
+            </div>
           </div>
           <span class="badge ${closed ? 'badge-closed' : 'badge-open'}">${closed ? 'Closed' : 'Open'}</span>
         </div>
