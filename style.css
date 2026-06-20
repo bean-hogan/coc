@@ -128,9 +128,9 @@ a { color: inherit; text-decoration: none; }
   align-items: flex-start;
   margin-bottom: 12px;
 }
-.card-id   { font-family: var(--mono); font-size: 16px; font-weight: 500; }
+.card-id   { font-family: var(--mono); font-size: 15px; font-weight: 500; }
 .card-item { font-size: 12px; color: var(--muted); margin-top: 4px; display: flex; align-items: center; gap: 5px; }
-.card-img-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+.card-img-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; overflow: hidden; }
 .cache-img { width: 52px; height: 52px; object-fit: contain; flex-shrink: 0; }
 .item-img  { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; vertical-align: middle; }
 
