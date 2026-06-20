@@ -39,9 +39,15 @@
 
     <div class="detail-header">
       <div class="detail-header-top">
-        <div>
-          <h1 class="detail-id" id="d-id"></h1>
-          <div class="detail-sub" id="d-sub"></div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <img id="d-cache-img" src="" alt="" style="width:72px;height:72px;object-fit:contain" onerror="this.style.visibility='hidden'">
+          <div>
+            <h1 class="detail-id" id="d-id"></h1>
+            <div class="detail-sub" style="display:flex;align-items:center;gap:6px">
+              <img id="d-item-img" src="" alt="" style="width:18px;height:18px;object-fit:contain" onerror="this.style.visibility='hidden'">
+              <span id="d-sub"></span>
+            </div>
+          </div>
         </div>
         <span class="badge" id="d-badge"></span>
       </div>
@@ -134,8 +140,12 @@
     const closed = g.status === 'closed';
     const pct    = g.target > 0 ? Math.min(100, Math.round((g.totalReceived / g.target) * 100)) : 0;
 
-    document.getElementById('d-id').textContent  = (g.cacheName ? g.cacheName + ' (' + g.id + ')' : g.id);
-    document.getElementById('d-sub').textContent = g.itemName;
+    document.getElementById('d-id').textContent       = (g.cacheName ? g.cacheName + ' (' + g.id + ')' : g.id);
+    document.getElementById('d-sub').textContent      = g.itemName;
+    document.getElementById('d-cache-img').src         = 'images/' + (g.cacheId || '') + '.webp';
+    document.getElementById('d-cache-img').alt         = g.cacheName || '';
+    document.getElementById('d-item-img').src          = 'images/' + (g.itemId  || '') + '.webp';
+    document.getElementById('d-item-img').alt          = g.itemName  || '';
     document.getElementById('d-start').textContent   = g.startDate || '—';
     document.getElementById('d-end').textContent     = g.endDate   || '—';
     document.getElementById('d-target').textContent  = g.target + ' units';
